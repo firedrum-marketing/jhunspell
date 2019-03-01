@@ -1,0 +1,57 @@
+<project name="jhunspell" basedir=".">
+	<target name="build" description="Builds the JHunspell library">
+		<echo message="Begin build" />
+
+		<!-- These custom tasks enhance the functionality of Ant. -->
+		<taskdef resource="net/sf/antcontrib/antlib.xml">
+			<classpath>
+				<pathelement location="ant-contrib-1.0b3.jar" />
+			</classpath>
+		</taskdef>
+
+		<!-- ==================== Check OS ======================================== -->
+		<condition property="os" value="windows" else="linux">
+			<os family="windows" />
+		</condition>
+
+		<if>
+			<equals arg1="${os}" arg2="windows" />
+			<then>
+				<copy tofile="${basedir}/ant.sh" file="${basedir}/template.ant.sh" overwrite="true" />
+
+				<replace file="${basedir}/ant.sh">
+					<replacefilter token="@jhunspellDir@" value="${basedir}" />
+				</replace>
+				<exec executable="cmd" dir="${basedir}">
+					<arg value="/c"/>
+					<arg value="ant.cmd"/>
+					<arg value="-p"/>
+				</exec>
+			</then>
+			<else>
+				<exec executable="autoreconf" dir="${basedir}" output="/dev/null" error="/dev/null">
+					<arg value="--force"/>
+					<arg value="--install"/>
+				</exec>
+				<exec executable="automake" dir="${basedir}" output="/dev/null" error="/dev/null">
+					<arg value="--add-missing"/>
+				</exec>
+				<exec executable="chmod" dir="${basedir}">
+					<arg value="u+x"/>
+					<arg value="./configure"/>
+				</exec>
+				<exec executable="./configure" dir="${basedir}">
+					<arg value="--host"/>
+					<arg value="x86_64-redhat-linux"/>
+					<arg value="--build"/>
+					<arg value="x86_64-redhat-linux"/>
+					<arg value="--with-java-home=/usr/lib/jvm/java"/>
+				</exec>
+				<exec executable="make" dir="${basedir}">
+					<arg value="distclean"/>
+				</exec>
+				<exec executable="make" dir="${basedir}" />
+			</else>
+		</if>
+	</target>
+</project>
